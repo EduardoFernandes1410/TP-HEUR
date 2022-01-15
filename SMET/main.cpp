@@ -135,7 +135,7 @@ int main() {
 
   print_instance();
 
-  Constructive constructive(10);
+  Constructive constructive(3);
   constructive.construct();
 
   return 0;

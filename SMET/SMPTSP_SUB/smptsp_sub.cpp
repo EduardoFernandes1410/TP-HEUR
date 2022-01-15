@@ -57,15 +57,12 @@ void SMPTSP_SUB::define_problem(IloModel model, const IloArray<IloBoolVarArray> 
 void SMPTSP_SUB::print_solution(IloModel &model, IloCplex &cplex, const IloArray<IloBoolVarArray> &var_x, const IloBoolVarArray &var_y) {
   IloEnv env = model.getEnv();
 
-  IloNumArray vals_x(env), vals_y(env);
+  IloNumArray vals_x(env);
   env.out() << "Solution status = " << fixed << setprecision(3) << cplex.getStatus() << endl;
   env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
   // bool full = false;
   // if(!full) return;
-
-  // cplex.getValues(vals_y, var_y);
-  // env.out() << "Y:" << vals_y;
 
   env.out() << endl << "X:" << endl;
   for(int j = 0; j < J_size; j++) {
@@ -75,7 +72,7 @@ void SMPTSP_SUB::print_solution(IloModel &model, IloCplex &cplex, const IloArray
 }
 
 
-int SMPTSP_SUB::solve() {
+vector<vector<int>> SMPTSP_SUB::solve() {
   cout << "main" << endl;
   IloEnv env;
   try {
@@ -115,7 +112,21 @@ int SMPTSP_SUB::solve() {
       throw(-1);
     }
 
-    print_solution(model, cplex, var_x, var_y);    
+    print_solution(model, cplex, var_x, var_y);
+
+    // Return solution
+    vector<vector<int>> x_vector(J_size);
+    IloNumArray vals_x(env);
+
+    for(int j = 0; j < J_size; j++) {
+      cplex.getValues(vals_x, var_x[j]);
+      for(int w = 0; w < vals_x.getSize(); w++) {
+        x_vector[j].push_back((int) vals_x[w]);
+      }
+    }
+
+    env.end();
+    return x_vector;
   }
   catch (IloException& e) {
     cerr << "Concert exception caught: " << e << endl;
@@ -124,7 +135,5 @@ int SMPTSP_SUB::solve() {
     cerr << "Unknown exception caught" << endl;
   }
 
-  env.end();
-
-  return 0;
+  return vector<vector<int>>();
 }

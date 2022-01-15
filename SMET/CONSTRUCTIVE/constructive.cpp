@@ -21,6 +21,9 @@ void Constructive::construct() {
   iota(W.begin(), W.end(), 0);
   random_shuffle(W.begin(), W.end());
 
+  vector<vector<int>> R_w(smet::W_size);
+  vector<int> R_j(smet::J_size, -1);
+
   vector<bool> task_used(smet::J_size, false), worker_used(smet::W_size, false), task_trash(smet::J_size, false);
 
   int pointer = 0, trash_counter = 0;
@@ -28,20 +31,23 @@ void Constructive::construct() {
     map<int, int> dict_task; //[task_og_id, task_new_id]
     map<int, int> dict_worker; //[worker_og_id, worker_new_id]
 
+    map<int, int> dict_task_inv; //[task_new_id, task_og_id]
+    map<int, int> dict_worker_inv; //[worker_new_id, worker_og_id]
+
     // Collect workers and tasks used in subproblem
     for(int i = pointer; i < min(pointer + b, smet::W_size); i++) {
       worker_used[W[i]] = true;
       dict_worker[W[i]] = i - pointer;
+      dict_worker_inv[i - pointer] = W[i];
 
       for(auto j : T[W[i]]) {
-        if(task_trash[j]) continue;
+        if(task_used[j] or task_trash[j]) continue;
 
         int tam = dict_task.size();
         dict_task[j] = tam;
+        dict_task_inv[tam] = j;
 
         task_used[j] = true;
-        task_trash[j] = true;
-        trash_counter++;
       }
     }
 
@@ -109,7 +115,27 @@ void Constructive::construct() {
 
     // Call CPLEX
     SMPTSP_SUB smptsp(dict_task.size(), dict_worker.size(), new_P, new_C_w, new_D);
-    smptsp.solve();
+    auto sol = smptsp.solve();
+
+    for(auto i : sol) {
+      for(auto j : i) cout << j << " ";
+      cout << endl;
+    }
+
+    // Build solution
+    for(int j = 0; j < sol.size(); j++) {
+      for(int w = 0; w < sol[j].size(); w++) {
+        if(sol[j][w] == 1) {
+          int real_j = dict_task_inv[j], real_w = dict_worker_inv[new_P[j][w]];
+          R_w[real_w].push_back(real_j);
+          R_j[real_j] = real_w;
+
+          task_trash[real_j] = true;
+          trash_counter++;
+          break;
+        }
+      }
+    }
 
 
     // Reset task_used and worker_used arrays
@@ -118,5 +144,17 @@ void Constructive::construct() {
 
     pointer += b;
     // break;
+  }
+
+  cout << "Solucao final:" << endl;
+  cout << "R_w:" << endl;
+  for(int w = 0; w < smet::W_size; w++) {
+    cout << "W=" << w << ": ";
+    for(auto j : R_w[w]) cout << j << ", ";
+    cout << endl;
+  }
+  cout << endl << "R_w:" << endl;
+  for(int j = 0; j < smet::J_size; j++) {
+    cout << "J=" << j << ": " << R_j[j] << endl;
   }
 }
