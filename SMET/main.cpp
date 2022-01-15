@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include "NAMESPACE/smet_namespace.h"
 #include "CONSTRUCTIVE/constructive.h"
+#include "IMPROVEMENT/improvement.h"
 using namespace std;
 
 const int INF = 0x3f3f3f3f;
@@ -133,10 +134,24 @@ int main() {
   find_maximal_cliques();
   compute_c_w();
 
-  print_instance();
+  // print_instance();
 
-  Constructive constructive(3);
-  constructive.construct();
+  cout << "VOU CONSTRUIR" << endl;
+
+  Constructive constructive(10);
+  auto [initial_y, initial_x] = constructive.construct();
+
+  cout << "TERMINEI DE CONSTRUIR" << endl;
+
+  int lower_bound = 0;
+  for(auto k : smet::C) lower_bound = max(lower_bound, (int) k.size());
+
+  cout << "VOU MELHORAR" << endl;
+
+  Improvement improvement(4.5);
+  improvement.improve(lower_bound, initial_x, initial_y);
+
+  cout << "TERMINEI DE MELHORAR" << endl;
 
   return 0;
 }

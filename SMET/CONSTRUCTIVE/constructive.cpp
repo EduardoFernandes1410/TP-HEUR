@@ -14,8 +14,22 @@ Constructive::Constructive(int b_) : b(b_) {
 }
 
 
-// pair<vector<int>, vector<vector<int>>> Constructive::construct() {
-void Constructive::construct() {
+pair<vector<int>, vector<vector<int>>> Constructive::build_solution(vector<int> &R_j) {
+  vector<int> y_sol(smet::W_size);
+  vector<vector<int>> x_sol(smet::J_size);
+
+  for(int j = 0; j < smet::J_size; j++) {
+    x_sol[j].resize(P[j].size(), 0);
+    int pos = lower_bound(P[j].begin(), P[j].end(), R_j[j]) - P[j].begin();
+    x_sol[j][pos] = 1;
+    y_sol[R_j[j]] = 1;
+  }
+
+  return {y_sol, x_sol};
+}
+
+
+pair<vector<int>, vector<vector<int>>> Constructive::construct() {
   cout << "W: " << smet::W_size << endl;
   vector<int> W(smet::W_size);
   iota(W.begin(), W.end(), 0);
@@ -84,43 +98,43 @@ void Constructive::construct() {
 
 
     //////////////////////////////
-    cout << "Conjunto de Workers: " << endl;
-    for(auto [w, id] : dict_worker) cout << w << " -> " << id << endl;
+    // cout << "Conjunto de Workers: " << endl;
+    // for(auto [w, id] : dict_worker) cout << w << " -> " << id << endl;
 
-    cout << endl << "Conjunto de Jobs: " << endl;
-    for(auto [j, id] : dict_task) cout << j << " -> " << id << endl;
+    // cout << endl << "Conjunto de Jobs: " << endl;
+    // for(auto [j, id] : dict_task) cout << j << " -> " << id << endl;
 
-    cout << endl << "P: " << endl;
-    for(auto i : new_P) {
-      for(auto j : i) cout << j << " ";
-      cout << endl;
-    }
+    // cout << endl << "P: " << endl;
+    // for(auto i : new_P) {
+    //   for(auto j : i) cout << j << " ";
+    //   cout << endl;
+    // }
 
-    cout << endl << "D: " << endl;
-    for(auto i : new_D) cout << i << ", ";
-    cout << endl;
+    // cout << endl << "D: " << endl;
+    // for(auto i : new_D) cout << i << ", ";
+    // cout << endl;
 
-    cout << endl << "C_w:" << endl;
-    for(auto w : new_C_w) {
-      for(auto k : w) {
-        cout << "{";
-        for(auto j : k) cout << j << " ";
-        cout << "}, ";
-      }
-      cout << endl;
-    }
+    // cout << endl << "C_w:" << endl;
+    // for(auto w : new_C_w) {
+    //   for(auto k : w) {
+    //     cout << "{";
+    //     for(auto j : k) cout << j << " ";
+    //     cout << "}, ";
+    //   }
+    //   cout << endl;
+    // }
     /////////////////////////////
 
 
 
     // Call CPLEX
-    SMPTSP_SUB smptsp(dict_task.size(), dict_worker.size(), new_P, new_C_w, new_D);
-    auto sol = smptsp.solve();
+    SMPTSP_SUB smptsp_sub(dict_task.size(), dict_worker.size(), new_P, new_C_w, new_D);
+    auto sol = smptsp_sub.solve();
 
-    for(auto i : sol) {
-      for(auto j : i) cout << j << " ";
-      cout << endl;
-    }
+    // for(auto i : sol) {
+    //   for(auto j : i) cout << j << " ";
+    //   cout << endl;
+    // }
 
     // Build solution
     for(int j = 0; j < sol.size(); j++) {
@@ -137,6 +151,11 @@ void Constructive::construct() {
       }
     }
 
+    // Last subproblem
+    // if(trash_counter == smet::J_size) {
+    //   SMPTSP_SUB smptsp(dict_task.size(), dict_worker.size(), new_P, new_C_w, new_D);
+    //   auto alternativa_sol = smptsp.solve();
+    // }
 
     // Reset task_used and worker_used arrays
     for(auto [task, id] : dict_task) task_used[task] = false;
@@ -146,15 +165,18 @@ void Constructive::construct() {
     // break;
   }
 
-  cout << "Solucao final:" << endl;
-  cout << "R_w:" << endl;
-  for(int w = 0; w < smet::W_size; w++) {
-    cout << "W=" << w << ": ";
-    for(auto j : R_w[w]) cout << j << ", ";
-    cout << endl;
-  }
-  cout << endl << "R_w:" << endl;
-  for(int j = 0; j < smet::J_size; j++) {
-    cout << "J=" << j << ": " << R_j[j] << endl;
-  }
+  // cout << "Solucao construida:" << endl;
+  // cout << "R_w:" << endl;
+  // for(int w = 0; w < smet::W_size; w++) {
+  //   cout << "W=" << w << ": ";
+  //   for(auto j : R_w[w]) cout << j << ", ";
+  //   cout << endl;
+  // }
+  // cout << endl << "R_j:" << endl;
+  // for(int j = 0; j < smet::J_size; j++) {
+  //   cout << "J=" << j << ": " << R_j[j] << endl;
+  // }
+
+  // Return final solution
+  return build_solution(R_j);
 }

@@ -141,8 +141,8 @@ clean :
 #
 
 # The DMLCPR program itself
-MAIN: MAIN.o smet_namespace.o constructive.o smptsp_sub.o
-	$(CCC) $(CCFLAGS) $(CCLNDIRS) -o MAIN MAIN.o smet_namespace.o constructive.o smptsp_sub.o $(CCLNFLAGS)
+MAIN: MAIN.o smet_namespace.o constructive.o improvement.o smptsp_sub.o smptsp_impr.o
+	$(CCC) $(CCFLAGS) $(CCLNDIRS) -o MAIN MAIN.o smet_namespace.o constructive.o improvement.o smptsp_sub.o smptsp_impr.o $(CCLNFLAGS)
 
 MAIN.o: main.cpp
 	$(CCC) -c $(CCFLAGS) main.cpp -o MAIN.o
@@ -155,6 +155,12 @@ constructive.o: CONSTRUCTIVE/constructive.cpp
 
 smptsp_sub.o: SMPTSP_SUB/smptsp_sub.cpp
 	$(CCC) -c $(CCFLAGS) SMPTSP_SUB/smptsp_sub.cpp -o smptsp_sub.o
+
+smptsp_impr.o: SMPTSP_IMPR/smptsp_impr.cpp
+	$(CCC) -c $(CCFLAGS) SMPTSP_IMPR/smptsp_impr.cpp -o smptsp_impr.o
+
+improvement.o: IMPROVEMENT/improvement.cpp
+	$(CCC) -c $(CCFLAGS) IMPROVEMENT/improvement.cpp -o improvement.o
 
 # Local Variables:
 # mode: makefile
