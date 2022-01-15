@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 #include "NAMESPACE/smet_namespace.h"
-#include "smptsp.h"
+#include "CONSTRUCTIVE/constructive.h"
 using namespace std;
 
 const int INF = 0x3f3f3f3f;
@@ -133,9 +133,10 @@ int main() {
   find_maximal_cliques();
   compute_c_w();
 
-  // print_instance();
+  print_instance();
 
-  smptsp();
+  Constructive constructive(10);
+  constructive.construct();
 
   return 0;
 }

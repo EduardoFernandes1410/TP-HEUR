@@ -68,7 +68,7 @@ CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR)
 #  make execute  : to compile and execute the examples.
 #------------------------------------------------------------
 
-CPP_EX = SMPTSP
+CPP_EX = MAIN
 
 all_cpp: $(CPP_EX)
 
@@ -141,14 +141,20 @@ clean :
 #
 
 # The DMLCPR program itself
-SMPTSP: SMPTSP.o smet_namespace.o
-	$(CCC) $(CCFLAGS) $(CCLNDIRS) -o SMPTSP SMPTSP.o smet_namespace.o $(CCLNFLAGS)
+MAIN: MAIN.o smet_namespace.o constructive.o smptsp_sub.o
+	$(CCC) $(CCFLAGS) $(CCLNDIRS) -o MAIN MAIN.o smet_namespace.o constructive.o smptsp_sub.o $(CCLNFLAGS)
 
-SMPTSP.o: main.cpp
-	$(CCC) -c $(CCFLAGS) main.cpp -o SMPTSP.o
+MAIN.o: main.cpp
+	$(CCC) -c $(CCFLAGS) main.cpp -o MAIN.o
 
 smet_namespace.o: NAMESPACE/smet_namespace.cpp
 	$(CCC) -c $(CCFLAGS) NAMESPACE/smet_namespace.cpp -o smet_namespace.o
+
+constructive.o: CONSTRUCTIVE/constructive.cpp
+	$(CCC) -c $(CCFLAGS) CONSTRUCTIVE/constructive.cpp -o constructive.o
+
+smptsp_sub.o: SMPTSP_SUB/smptsp_sub.cpp
+	$(CCC) -c $(CCFLAGS) SMPTSP_SUB/smptsp_sub.cpp -o smptsp_sub.o
 
 # Local Variables:
 # mode: makefile

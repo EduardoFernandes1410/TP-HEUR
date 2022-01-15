@@ -1,62 +1,45 @@
+#ifndef SMPTSP_H
+#define SMPTSP_H
+
 #include <ilcplex/ilocplex.h>
+// #include "NAMESPACE/smet_namespace.h"
 ILOSTLBEGIN
 
 typedef IloArray<IloIntArray> IntMatrix;
 
 // Data
-IloInt J_size, W_size;
-IloArray<IloNumArray> P;
-IloArray<IloArray<IloNumArray>> C_w;
-
-void read_data(IloEnv env, string file_path) {
-  ifstream f(file_path, ios_base::in);
-  if(!f) {
-    cerr << "Data file not found!" << endl;
-    exit(0);
-  }
-
-  P = IloArray<IloNumArray>(env);
-  C_w = IloArray<IloNumArray>(env);
-
-  f >> J_size;
-  f >> W_size;
-  f >> P;
-  f >> C_w;
-} // END read_data
-
-void usage (const char *progname) {
-  cerr << "Usage: " << progname << " <path to data file (OR-CPLEX)>" << endl;
-  cerr << " Exiting..." << endl;
-} // END usage
+int J_size, W_size;
+vector<vector<int>> P;
+vector<vector<vector<int>>> C_w;
 
 void define_problem(IloModel model, const IloArray<IloBoolVarArray> x, const IloBoolVarArray y) {
   IloEnv env = model.getEnv();
 
   // Objective function
   IloExpr total_cost(env);
-  for(int w = 0; w < smet::W_size; w++)
+  for(int w = 0; w < W_size; w++)
       total_cost += y[w];
   model.add(IloMinimize(env, total_cost));
 
   // Constraint 2
-  IloArray<IloExpr> c2(env, smet::J_size);
-  for(int j = 0; j < smet::J_size; j++) c2[j] = IloExpr(env);
+  IloArray<IloExpr> c2(env, J_size);
+  for(int j = 0; j < J_size; j++) c2[j] = IloExpr(env);
 
-  for(int j = 0; j < smet::J_size; j++) {
+  for(int j = 0; j < J_size; j++) {
     c2[j] = x[j][0]*0;
-    for(int w = 0; w < smet::P[j].size(); w++) c2[j] += x[j][w];
+    for(int w = 0; w < P[j].size(); w++) c2[j] += x[j][w];
     model.add(c2[j] == 1);
   }
 
   // Constraint 3
-  IloArray<IloExprArray> c3(env, smet::W_size);
-  for(int w = 0; w < smet::W_size; w++) c3[w] = IloExprArray(env, smet::C_w[w].size());
+  IloArray<IloExprArray> c3(env, W_size);
+  for(int w = 0; w < W_size; w++) c3[w] = IloExprArray(env, C_w[w].size());
 
-  for(int w = 0; w < smet::W_size; w++) {
-    for(int k = 0; k < smet::C_w[w].size(); k++) {
+  for(int w = 0; w < W_size; w++) {
+    for(int k = 0; k < C_w[w].size(); k++) {
       c3[w][k] = x[w][0]*0;
-      for(auto j : smet::C_w[w][k]){
-        int pos = lower_bound(smet::P[j].begin(), smet::P[j].end(), w) - smet::P[j].begin();
+      for(auto j : C_w[w][k]){
+        int pos = lower_bound(P[j].begin(), P[j].end(), w) - P[j].begin();
         c3[w][k] += x[j][pos];
       }
       model.add(c3[w][k] <= y[w]);
@@ -77,14 +60,14 @@ void print_solution(IloModel &model, IloCplex &cplex, const IloArray<IloBoolVarA
   env.out() << "Y:" << vals_y;
 
   env.out() << endl << "X:" << endl;
-  for(int j = 0; j < smet::J_size; j++) {
+  for(int j = 0; j < J_size; j++) {
     cplex.getValues(vals_x, var_x[j]);
     env.out() << "j = " << j << ": " << vals_x << endl;
   }
 }
 
 
-int main (int argc, char **argv) {
+int smptsp(int J_size_, int W_size_, vector<vector<int>> P_, vector<vector<vector<int>>> C_w_) {
   cout << "main" << endl;
   IloEnv env;
   try {
@@ -92,21 +75,17 @@ int main (int argc, char **argv) {
     IloModel model(env);
     cout << "model" << endl;
 
-    // Check parameter of program
-    if (( argc != 2 )) {
-      usage (argv[0]);
-      throw(-1);
-    }
-
     // Read data
-    string file_path(argv[1]);
-    read_data(env, file_path);
+    J_size = J_size_;
+    W_size = W_size_;
+    P = P_;
+    C_w = C_w_;
     cout << "data " << J_size << " " << W_size << endl;
 
     // Create variables
     IloArray<IloBoolVarArray> var_x(env, J_size);
     IloBoolVarArray var_y(env, W_size);
-    for(int j = 0; j < J_size; j++) var_x[j] = IloBoolVarArray(env, W);
+    for(int j = 0; j < J_size; j++) var_x[j] = IloBoolVarArray(env, P[j].size());
     cout << "vars" << endl;
 
     // Declare cplex object
@@ -120,7 +99,7 @@ int main (int argc, char **argv) {
     cplex.exportModel("smptsp.lp");
 
     // Define time and memory restrictions
-    // 7200 seconds of execution time
+    // 100 seconds of execution time
     cplex.setParam(IloCplex::Param::TimeLimit, 100);
     // 4GB of tree memory
     cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 4096);
@@ -132,7 +111,7 @@ int main (int argc, char **argv) {
       throw(-1);
     }
 
-    print_solution(model, cplex, var_x, var_y);  
+    print_solution(model, cplex, var_x, var_y);    
   }
   catch (IloException& e) {
     cerr << "Concert exception caught: " << e << endl;
@@ -145,3 +124,5 @@ int main (int argc, char **argv) {
 
   return 0;
 } // END main
+
+#endif
