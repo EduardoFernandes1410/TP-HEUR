@@ -1,12 +1,79 @@
 #include <bits/stdc++.h>
+#include "NAMESPACE/smet_namespace.h"
+#include "CONSTRUCTIVE/constructive.h"
+#include "IMPROVEMENT/improvement.h"
 using namespace std;
 
 const int INF = 0x3f3f3f3f;
 
-int J_size, W_size;
-vector<tuple<int, int, int>> J; //[s_j, f_j, j] - tasks data
-vector<vector<int>> P; // set of workers who can perform task
-vector<vector<int>> T; // set of tasks which can be performed by worker
+void read_instance() {
+  char trash;
+  string input;
+  getline(cin, input);
+  getline(cin, input);
+  getline(cin, input);
+  getline(cin, input);
+
+  cin >> input >> input >> smet::J_size;
+
+  smet::J.resize(smet::J_size);
+  smet::P.resize(smet::J_size);
+  for(int i = 0; i < smet::J_size; i++) {
+    int s, f; cin >> s >> f;
+    smet::J[i] = {s, f, i};
+  }
+
+  cin >> input >> input >> smet::W_size;
+
+  smet::T.resize(smet::W_size);
+  for(int i = 0; i < smet::W_size; i++) {
+    int num_tasks; cin >> num_tasks >> trash;
+  
+    smet::T[i].resize(num_tasks);
+  
+    for(int j = 0; j < num_tasks; j++) {
+      cin >> smet::T[i][j];
+      smet::P[smet::T[i][j]].push_back(i);
+    }
+
+    sort(smet::T[i].begin(), smet::T[i].end());
+  }
+}
+
+void print_instance() {
+  cout << "J_size: " << smet::J_size << endl;
+  cout << "W_size: " << smet::W_size << endl;
+
+  cout << "Tasks:" << endl;
+  for(auto [s, f, j] : smet::J) cout << s << ", " << f << ", " << j << endl;
+
+  cout << endl << "P:" << endl;
+  for(auto i : smet::P) {
+    for(auto j : i) cout << j << " ";
+    cout << endl;
+  }
+  cout << endl << "T:" << endl;
+  for(auto i : smet::T) {
+    for(auto j : i) cout << j << " ";
+    cout << endl;
+  }
+
+  cout << endl << "C:" << endl;
+  for(auto i : smet::C) {
+    for(auto j : i) cout << j << " ";
+    cout << endl;
+  }
+
+  cout << endl << "C_w:" << endl;
+  for(auto w : smet::C_w) {
+    for(auto k : w) {
+      cout << "{";
+      for(auto j : k) cout << j << " ";
+      cout << "}, ";
+    }
+    cout << endl;
+  }
+}
 
 bool comp2(tuple<int, int, int> a, tuple<int, int, int> b) {
   auto [s1, f1, j1] = a;
@@ -15,12 +82,12 @@ bool comp2(tuple<int, int, int> a, tuple<int, int, int> b) {
   return f1 < f2;
 }
 
-vector<vector<int>> find_maximal_cliques() {
-  vector<vector<int>> C;
+void find_maximal_cliques() {
   int p = 0;
+  smet::C.clear();
 
-  auto J_s = J;
-  auto J_f = J;
+  auto J_s = smet::J;
+  auto J_f = smet::J;
   sort(J_s.begin(), J_s.end());
   sort(J_f.begin(), J_f.end(), comp2);
 
@@ -29,73 +96,62 @@ vector<vector<int>> find_maximal_cliques() {
     int f_index = upper_bound(J_f.begin(), J_f.end(), make_tuple(INF, s, 0), comp2) - J_f.begin();
     int f = get<1>(J_f[f_index]);
 
-    C.push_back(vector<int>());
+    smet::C.push_back(vector<int>());
     for(int j = f_index; j < J_f.size(); j++) {
       auto [s1, f1, j1] = J_f[j];
-      if(s1 < f) C[C.size()-1].push_back(j1);
+      if(s1 < f) smet::C.back().push_back(j1);
     }
 
     auto it = lower_bound(J_s.begin(), J_s.end(), make_tuple(f, -INF, 0));
     if(it == J_s.end()) break;
     s = get<0>(*it);
   } while(true);
+}
 
-  return C;
+void compute_c_w() {
+  smet::C_w.clear();
+  smet::C_w.resize(smet::W_size);
+
+  for(int w = 0; w < smet::W_size; w++) {
+    for(int k = 0; k < smet::C.size(); k++) {
+      bool flag = false;
+      for(auto j : smet::C[k]) {
+        if(binary_search(smet::T[w].begin(), smet::T[w].end(), j)) {
+          if(!flag) {
+            smet::C_w[w].push_back(vector<int>());
+            flag = true;
+          }
+          smet::C_w[w].back().push_back(j);
+        }
+      }
+      if(smet::C_w[w].size() and smet::C_w[w].back().size() == 1) smet::C_w[w].pop_back();
+    }
+  }
 }
 
 int main() {
-  char trash;
-  string input;
-  getline(cin, input);
-  getline(cin, input);
-  getline(cin, input);
-  getline(cin, input);
+  read_instance();
+  find_maximal_cliques();
+  compute_c_w();
 
-  cin >> input >> input >> J_size;
-  cout << "J_size: " << J_size << endl;
+  // print_instance();
 
-  J.resize(J_size);
-  P.resize(J_size);
-  for(int i = 0; i < J_size; i++) {
-    int s, f; cin >> s >> f;
-    J[i] = {s, f, i};
-  }
+  cout << "VOU CONSTRUIR" << endl;
 
-  cin >> input >> input >> W_size;
-  cout << "W_size: " << W_size << endl;
+  Constructive constructive(10);
+  auto [initial_y, initial_x] = constructive.construct();
 
-  T.resize(W_size);
-  for(int i = 0; i < W_size; i++) {
-    int num_tasks; cin >> num_tasks >> trash;
-  
-    T[i].resize(num_tasks);
-  
-    for(int j = 0; j < num_tasks; j++) {
-      cin >> T[i][j];
-      P[T[i][j]].push_back(i);
-    }
-  }
+  cout << "TERMINEI DE CONSTRUIR" << endl;
 
-  cout << "Tasks:" << endl;
-  for(auto [s, f, j] : J) cout << s << ", " << f << ", " << j << endl;
+  int lower_bound = 0;
+  for(auto k : smet::C) lower_bound = max(lower_bound, (int) k.size());
 
-  cout << endl << "P:" << endl;
-  for(auto i : P) {
-    for(auto j : i) cout << j << " ";
-    cout << endl;
-  }
-  cout << endl << "T:" << endl;
-  for(auto i : T) {
-    for(auto j : i) cout << j << " ";
-    cout << endl;
-  }
+  cout << "VOU MELHORAR" << endl;
 
-  auto C = find_maximal_cliques();
-  cout << endl << "C:" << endl;
-  for(auto i : C) {
-    for(auto j : i) cout << j << " ";
-    cout << endl;
-  }
+  Improvement improvement(4.5);
+  improvement.improve(lower_bound, initial_x, initial_y);
+
+  cout << "TERMINEI DE MELHORAR" << endl;
 
   return 0;
 }
