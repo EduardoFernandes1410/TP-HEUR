@@ -132,7 +132,7 @@ execute_cpp: $(CPP_EX)
 
 clean :
 	/bin/rm -rf *.o *~ *.class
-	/bin/rm -rf $(CPP_EX)
+# 	/bin/rm -rf $(CPP_EX)
 	/bin/rm -rf *.mps *.ord *.sos *.lp *.sav *.net *.msg *.log *.clp
 
 # ------------------------------------------------------------
