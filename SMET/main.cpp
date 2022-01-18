@@ -139,9 +139,14 @@ int main() {
   cout << "VOU CONSTRUIR" << endl;
 
   Constructive constructive(10);
-  auto [initial_y, initial_x] = constructive.construct();
+  constructive.construct();
 
   cout << "TERMINEI DE CONSTRUIR" << endl;
+
+  auto initial_y = constructive.get_final_y_sol();
+  auto initial_x = constructive.get_final_x_sol();
+
+  cout << "OBTIVE A SOLUCAO CONSTRUIDA" << endl;
 
   int lower_bound = 0;
   for(auto k : smet::C) lower_bound = max(lower_bound, (int) k.size());
