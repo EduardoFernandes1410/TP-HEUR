@@ -14,23 +14,35 @@ Constructive::Constructive(int b_) : b(b_) {
 }
 
 
-pair<vector<int>, vector<vector<int>>> Constructive::build_solution(vector<int> &R_j) {
+vector<int> Constructive::get_final_y_sol() {
+  return final_y_sol;
+}
+
+
+vector<vector<int>> Constructive::get_final_x_sol() {
+  return final_x_sol;
+}
+
+
+void Constructive::build_solution(vector<int> &R_j) {
   vector<int> y_sol(smet::W_size);
   vector<vector<int>> x_sol(smet::J_size);
 
   for(int j = 0; j < smet::J_size; j++) {
     x_sol[j].resize(P[j].size(), 0);
+    if(R_j[j] == -1) continue;
+
     int pos = lower_bound(P[j].begin(), P[j].end(), R_j[j]) - P[j].begin();
     x_sol[j][pos] = 1;
     y_sol[R_j[j]] = 1;
   }
 
-  return {y_sol, x_sol};
+  final_y_sol = y_sol;
+  final_x_sol = x_sol;
 }
 
 
-pair<vector<int>, vector<vector<int>>> Constructive::construct() {
-  cout << "W: " << smet::W_size << endl;
+void Constructive::construct() {
   vector<int> W(smet::W_size);
   iota(W.begin(), W.end(), 0);
   random_shuffle(W.begin(), W.end());
@@ -165,6 +177,9 @@ pair<vector<int>, vector<vector<int>>> Constructive::construct() {
     // break;
   }
 
+  // Build final solution
+  build_solution(R_j);
+
   // cout << "Solucao construida:" << endl;
   // cout << "R_w:" << endl;
   // for(int w = 0; w < smet::W_size; w++) {
@@ -176,7 +191,4 @@ pair<vector<int>, vector<vector<int>>> Constructive::construct() {
   // for(int j = 0; j < smet::J_size; j++) {
   //   cout << "J=" << j << ": " << R_j[j] << endl;
   // }
-
-  // Return final solution
-  return build_solution(R_j);
 }
