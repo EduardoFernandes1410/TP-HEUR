@@ -39,7 +39,7 @@ void read_instance() {
 
     aco::b = vector<int>(aco::W_size, 1); // cost 1 for all workers
     for(int i = 0; i < aco::J_size; i++){
-        aco::b.push_back(INF);
+        aco::b.push_back(100);
         aco::P[i].push_back(aco::W_size + i);
         aco::T.push_back({i});
     }
@@ -76,22 +76,6 @@ int sample_worker(vector<double> &p){
     return 0;
 }
 
-
-
-// void normalize(vector<double> &p, double target){
-//     double sum = 0;
-//     double vmax = -INF;
-//     for(auto n:p){
-//         sum += n;
-//         vmax = max(vmax, n);
-//     }
-//     if (sum == 0) return;
-//     for(auto &n:p){
-//         n /= vmax;
-//         n *= target;
-//     }
-// }
-
 vector<double> sum_up(vector<double> &a, vector<double> &b){
     vector<double> res(a.size());
     for(int i = 0; i < a.size(); i++){
@@ -106,13 +90,13 @@ void printv(vector<double> &v){
     }
     cout << endl;
 }
+
 void printv(vector<int> &v){
     for(auto n:v){
         cout << n << " ";
     }
     cout << endl;
 }
-
 
 void normalize(vector<double> &p){
     double sum = 0;
@@ -142,33 +126,23 @@ vector<int> build_wline(int i, vector<vector<int> > &ws){
     return res;
 }
 
-
-
-vector<int>  greedy_random_heuristic(double alpha, double beta, vector<vector<double> > &tau) {
+vector<int> greedy_random_heuristic(double alpha, double beta, vector<vector<double> > &tau) {
     vector<int>  sol(aco::J_size);
 
-    sort(aco::J.begin(), aco::J.end(),compare_times );
-    vector<vector<int> > S; // solutions set
-    vector<vector<int > > ws(aco::W_size+aco::J_size, vector<int>()); // workers tasks set
-    // cout << "J_size: " << aco::J_size << endl;
-    // cout << "W_size: " << aco::W_size << endl;
+    // auto rng = default_random_engine{};
+    // shuffle(aco::J.begin(), aco::J.end(), rng);
 
+    sort(aco::J.begin(), aco::J.end(),compare_times );
+    vector<vector<int > > ws(aco::W_size+aco::J_size, vector<int>()); // workers tasks set
 
     // tarefas que ainda podem ser feitas por cada worker
     vector<double> freq(aco::W_size+aco::J_size, 1/INF);
-    for(int i = 0; i < aco::W_size+aco::J_size; i++){
+    for(int i = 0; i < aco::W_size; i++){
         freq[i] = aco::T[i].size();
-    } 
+    }
 
 
     for(int i = 0; i < aco::J_size; i++) {
-        // cout << "ws: " << endl;
-        // for(auto w:ws){
-        //     printv(w);
-        // }
-        // cout << "--------" << endl;
-
-
         vector<int> wline = build_wline(i, ws); // trabalhadores que podem fazer J_i de boa
 
         // cout << "workers habilitados para a tarefa " << i << ": ";
@@ -177,22 +151,22 @@ vector<int>  greedy_random_heuristic(double alpha, double beta, vector<vector<do
         // }
         // cout << endl;
 
-        vector<double> eta1(wline.size());
-        vector<double> eta2(wline.size());
+        vector<double> eta1(wline.size()); // soma da duração das tarefas atribuidas a cada worker
+        vector<double> eta2(wline.size()); // numero de tarefas que cada trabalhador ainda pode fazer
         vector<double> tauline(wline.size());
         // TODO: talvez o peso do worker invalido ainda seja muito alto
         for(int e = 0; e < wline.size(); e++) {
             eta1[e] = task_length(ws[wline[e]]) ;
             eta2[e] = freq[wline[e]];
-            tauline[e] = tau[i][e];
+            tauline[e] = tau[i][wline[e]];
         }
 
 
         // printv(eta1);
         // printv(eta2);
-        normalize(eta1);
-        normalize(eta2);
-        normalize(tauline);
+        // normalize(eta1);
+        // normalize(eta2);
+        // normalize(tauline);
         // cout << "eta1: ";printv(eta1);
         // cout << "eta2: ";printv(eta2);
         vector<double> eta = sum_up(eta1, eta2);
@@ -210,10 +184,12 @@ vector<int>  greedy_random_heuristic(double alpha, double beta, vector<vector<do
         vector<double> p (wline.size());
         for(int e = 0; e < wline.size(); e++) {
             p[e] = (pow(tauline[e], alpha) * pow(eta[e], beta) / total) * (1/aco::b[wline[e]]);
+            // p[e] = wline[e] >= aco::W_size ? 1/INF : 1; // 100% random
         }
+        // p =vector<double> (wline.size(),1);
         normalize(p);
         // printv(p);
-
+        
         int e = wline[sample_worker(p)];
         // cout << "escolhido: " << e << endl;
         for(int k = 0; k < aco::P[i].size(); k++ ){
@@ -243,9 +219,9 @@ int solution_cost(vector<int> &sol){
         if(workers.find(sol[i]) == workers.end()){
             workers.insert(sol[i]);
             cost += aco::b[sol[i]];
-        }
+        }        
     }
-    return workers.size();
+    return cost;
 }
 
 void update_tau(vector<vector<double> > &tau, double rho){
@@ -254,6 +230,18 @@ void update_tau(vector<vector<double> > &tau, double rho){
             tau[i][j] = tau[i][j] *(1-rho);
         }
     }
+}
+
+double max_value(vector<vector<double> > &x){
+    double max = 0;
+    for(int i = 0; i < x.size(); i++){
+        for(int j = 0; j < x[i].size(); j++){
+            if(x[i][j] > max){
+                max = x[i][j];
+            }
+        }
+    }
+    return max;
 }
 
 vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double beta, int limiter){
@@ -271,25 +259,33 @@ vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double
     while(not stop){
         int bestpop_sol_cost = INF;
         vector<int> bestpop_sol = temp_sol;
+
+        int non_feasible = 0;
         for(int i = 0; i < tam; i++){
             temp_sol=  greedy_random_heuristic(alpha, beta, tau); // generating population
+            vector<double> subv(temp_sol.begin(), temp_sol.begin()+10);
+            // cout << "sol: "; printv(subv);
             int sol_cost = solution_cost(temp_sol);
             if (sol_cost < bestpop_sol_cost){
                 bestpop_sol_cost = sol_cost;
                 bestpop_sol = temp_sol;
             }
+            if(sol_cost > aco::W_size){
+                non_feasible++;
+            }
         }
+        cout << "non_feasible: " << non_feasible << endl;
         update_tau(tau, rho);
 
         for(int j = 0; j < aco::J_size; j++){
-            tau[j][bestpop_sol[j]] += delta;
+            tau[j][bestpop_sol[j]] += bestpop_sol[j] >= aco::J_size ? 0 : delta;
         }
 
         if (bestpop_sol_cost < best_sol_cost){
             best_sol_cost = bestpop_sol_cost;
             sol = bestpop_sol;
             non_improved = 0;
-            cout << "melhorou..." << endl;
+            cout << "melhorou... custo: "<< best_sol_cost << endl;
         }else{
             non_improved++;
         }
@@ -304,7 +300,8 @@ vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double
 
 int main(){
     read_instance();
-
+    cout << "J_size: " << aco::J_size << endl;
+    cout << "W_size: " << aco::W_size << endl;
     // cout << "quem pode fazer oq: " << endl;
     // for(int i = 0; i < aco::W_size;i++){
     //     cout << i << ": ";
@@ -332,7 +329,9 @@ int main(){
     // }
     // vector<int> s = greedy_random_heuristic(1,1);
     // cout<<"gen sol: "; printv(s);
-    vector<int> bestsol = aco_heuristic(100, 0.9, 0.1, 1.0, 0.8, 100);
+
+    // aco_heuristic -    POP SIZE | RHO | DELTA | ALPHA | BETA | LIMITER
+    vector<int> bestsol = aco_heuristic(500, 0.1, 0.9, 0.8, 0.2, 100);
     cout << "best: "; printv(bestsol);
     cout << "cost: " << solution_cost(bestsol) << endl;
     return 0;
