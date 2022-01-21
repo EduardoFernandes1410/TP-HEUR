@@ -11,11 +11,15 @@ class Constructive {
     vector<vector<int>> T; // set of tasks which can be performed by worker
     vector<vector<int>> C; // set of maximal cliques in interval graph
     vector<vector<vector<int>>> C_w; // set of maximal cliques per worker
+    vector<int> final_y_sol;
+    vector<vector<int>> final_x_sol;
 
   public:
     Constructive(int b_);
-    pair<vector<int>, vector<vector<int>>> build_solution(vector<int> &R_j);
-    pair<vector<int>, vector<vector<int>>> construct(); //[y_w, x_jw]
+    void build_solution(vector<int> &R_j);
+    void construct(); //[y_w, x_jw]
+    vector<int> get_final_y_sol();
+    vector<vector<int>> get_final_x_sol();
 };
 
 #endif
