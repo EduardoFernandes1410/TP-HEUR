@@ -110,7 +110,7 @@ vector<int> greedy_random_heuristic(double alpha, double beta, vector<vector<dou
 
         //  cout << "tarefa " << i << " foi atribuida ao trabalhador " << e << endl;
         for(auto ts : aco::T[e]){ // pra cada task que o worker pode fazer
-            // if(sol[ts] != -1) continue;
+            if(sol[ts] != -1) continue;
             bool conflict = false;
             for(auto t : ws[e]){ // pra cada task que o worker ja faz
                 if(aco::conflicts[ts][t]){
@@ -119,21 +119,8 @@ vector<int> greedy_random_heuristic(double alpha, double beta, vector<vector<dou
                 }
             }
             if(not conflict){ // se nao houver conflito, ele pode pegar essa tb
-                if(sol[ts] != -1){
-                    int old_cost = solution_cost(sol);
-                    int old_worker = sol[ts];
-                    sol[ts] = e;
-                    int new_cost = solution_cost(sol);
-                    if (new_cost >= old_cost){
-                        sol[ts] = old_worker;
-                    }else{
-                        ws[e].push_back(ts);
-                        ws[old_worker].erase(find(ws[old_worker].begin(), ws[old_worker].end(), ts));
-                    }
-                }else{
-                    sol[ts] = e;
-                    ws[e].push_back(ts);
-                }
+                sol[ts] = e;
+                ws[e].push_back(ts);
             }
         }
     }
@@ -176,6 +163,10 @@ double max_value(vector<vector<double> > &x){
 }
 
 vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double beta, int limiter){
+    auto begin = chrono::steady_clock::now();
+    auto end = chrono::steady_clock::now();
+    double seconds;
+
     double stop = false;
     vector<int> sol(aco::J_size);
 
@@ -203,11 +194,10 @@ vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double
                 non_feasible++;
             }
         }
-        cout << "non_feasible: " << non_feasible << endl;
         update_tau(tau, rho);
 
         for(int j = 0; j < aco::J_size; j++){
-            tau[j][bestpop_sol[j]] += bestpop_sol[j] >= aco::J_size ? 0 : delta;
+            tau[j][bestpop_sol[j]] += bestpop_sol[j] >= aco::W_size ? 0 : delta;
         }
 
         if (bestpop_sol_cost < best_sol_cost){
@@ -219,10 +209,13 @@ vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double
             non_improved++;
         }
 
-        if (non_improved > limiter){
+        end = chrono::steady_clock::now();
+        seconds = (chrono::duration_cast<chrono::microseconds>(end - begin).count()) / 1000000.0;
+        if (non_improved > limiter or seconds > 600){
             stop = true;
         }
     }
+    cout << "Time elapsed: " << seconds << endl;
     return sol;
 }
 
