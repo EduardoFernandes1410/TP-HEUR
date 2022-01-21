@@ -51,7 +51,7 @@ clean :
 MAIN: MAIN.o aco_namespace.o 
 	$(CCC) $(CCFLAGS) $(CCLNDIRS) -o MAIN MAIN.o aco_namespace.o 
 
-MAIN.o: main.cpp
+MAIN.o: main.cpp aco.cpp utils.cpp
 	$(CCC) -c $(CCFLAGS) main.cpp -o MAIN.o
 
 aco_namespace.o: NAMESPACE/aco_namespace.cpp

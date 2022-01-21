@@ -82,7 +82,9 @@ int solution_cost(vector<int> &sol){
     set<int> workers;
     int cost = 0;
     for(int i = 0; i < sol.size(); i++){
-        if(workers.find(sol[i]) == workers.end()){
+        if(sol[i] == -1) 
+            cost+=0;
+        else if(workers.find(sol[i]) == workers.end()){
             workers.insert(sol[i]);
             cost += aco::b[sol[i]];
         }

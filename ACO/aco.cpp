@@ -100,6 +100,7 @@ vector<int> greedy_random_heuristic(double alpha, double beta, vector<vector<dou
         // cout << "prob: "; printv(p);
         
         int e = wline[sample_worker(p)];
+
         // cout << "escolhido: " << e << endl;
         for(auto k :aco::P[i]){
             freq[k]--;
@@ -109,7 +110,7 @@ vector<int> greedy_random_heuristic(double alpha, double beta, vector<vector<dou
 
         //  cout << "tarefa " << i << " foi atribuida ao trabalhador " << e << endl;
         for(auto ts : aco::T[e]){ // pra cada task que o worker pode fazer
-            if(sol[ts] != -1) continue;
+            // if(sol[ts] != -1) continue;
             bool conflict = false;
             for(auto t : ws[e]){ // pra cada task que o worker ja faz
                 if(aco::conflicts[ts][t]){
@@ -118,12 +119,23 @@ vector<int> greedy_random_heuristic(double alpha, double beta, vector<vector<dou
                 }
             }
             if(not conflict){ // se nao houver conflito, ele pode pegar essa tb
-                sol[ts] = e;
-                ws[e].push_back(ts);
+                if(sol[ts] != -1){
+                    int old_cost = solution_cost(sol);
+                    int old_worker = sol[ts];
+                    sol[ts] = e;
+                    int new_cost = solution_cost(sol);
+                    if (new_cost >= old_cost){
+                        sol[ts] = old_worker;
+                    }else{
+                        ws[e].push_back(ts);
+                        ws[old_worker].erase(find(ws[old_worker].begin(), ws[old_worker].end(), ts));
+                    }
+                }else{
+                    sol[ts] = e;
+                    ws[e].push_back(ts);
+                }
             }
-            // cout<< "adding..."; printv(sol);
         }
-
     }
     return sol;
 }
