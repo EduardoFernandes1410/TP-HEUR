@@ -21,7 +21,7 @@ void SMPTSP_SUB::define_problem(IloModel model, const IloArray<IloBoolVarArray> 
       total_cost += (x[j][w] * D[j]);
   model.add(IloMaximize(env, total_cost));
 
-  env.out() << "Objective done" << endl;
+  // env.out() << "Objective done" << endl;
 
   // Constraint 2
   IloArray<IloExpr> c2(env, J_size);
@@ -33,7 +33,7 @@ void SMPTSP_SUB::define_problem(IloModel model, const IloArray<IloBoolVarArray> 
     model.add(c2[j] <= 1);
   }
 
-  env.out() << "C2 done" << endl;
+  // env.out() << "C2 done" << endl;
 
   // Constraint 3
   IloArray<IloExprArray> c3(env, W_size);
@@ -50,7 +50,7 @@ void SMPTSP_SUB::define_problem(IloModel model, const IloArray<IloBoolVarArray> 
     }
   }
 
-  env.out() << "C3 done" << endl;
+  // env.out() << "C3 done" << endl;
 } // END define_problem
 
 
@@ -73,12 +73,12 @@ void SMPTSP_SUB::print_solution(IloModel &model, IloCplex &cplex, const IloArray
 
 
 vector<vector<int>> SMPTSP_SUB::solve() {
-  cout << "main" << endl;
+  // cout << "main" << endl;
   IloEnv env;
   try {
     // Create model
     IloModel model(env);
-    cout << "model" << endl;
+    // cout << "model" << endl;
 
     // Read data
     cout << "data " << J_size << " " << W_size << endl;
@@ -87,13 +87,15 @@ vector<vector<int>> SMPTSP_SUB::solve() {
     IloArray<IloBoolVarArray> var_x(env, J_size);
     IloBoolVarArray var_y(env, W_size);
     for(int j = 0; j < J_size; j++) var_x[j] = IloBoolVarArray(env, P[j].size());
-    cout << "vars" << endl;
+    // cout << "vars" << endl;
 
     // Declare cplex object
     IloCplex cplex(model);
+    // Make it not log
+    cplex.setOut(env.getNullStream());
 
     // Define model
-    env.out() << "gonna read" << endl;
+    // env.out() << "gonna read" << endl;
     define_problem(model, var_x, var_y);
 
     // Export model

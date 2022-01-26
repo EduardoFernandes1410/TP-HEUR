@@ -138,6 +138,10 @@ int main() {
 
   cout << "VOU CONSTRUIR" << endl;
 
+  auto begin = chrono::steady_clock::now();
+  auto end = chrono::steady_clock::now();
+  double seconds;
+
   Constructive constructive(10);
   constructive.construct();
 
@@ -157,6 +161,10 @@ int main() {
   improvement.improve(lower_bound, initial_x, initial_y);
 
   cout << "TERMINEI DE MELHORAR" << endl;
+
+  end = chrono::steady_clock::now();
+  seconds = (chrono::duration_cast<chrono::microseconds>(end - begin).count()) / 1000000.0;
+  cout << "Time elapsed: " << seconds << endl;
 
   return 0;
 }

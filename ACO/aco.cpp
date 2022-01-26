@@ -200,6 +200,7 @@ vector<int> aco_heuristic(int tam, double rho,double delta, double alpha, double
             tau[j][bestpop_sol[j]] += bestpop_sol[j] >= aco::W_size ? 0 : delta;
         }
 
+        cout << "# non feasible: " << non_feasible << endl;
         if (bestpop_sol_cost < best_sol_cost){
             best_sol_cost = bestpop_sol_cost;
             sol = bestpop_sol;

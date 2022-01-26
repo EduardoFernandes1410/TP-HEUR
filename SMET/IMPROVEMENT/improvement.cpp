@@ -25,6 +25,7 @@ void Improvement::improve(int lower_bound, vector<vector<int>> initial_x, vector
   int F_x_line = evaluate(initial_y);
 
   while(F_x_line != lower_bound) {
+    cout << "Cur obj value: " << F_x_line << endl;
     SMPTSP_IMPR smptsp_impr(k, smet::J_size, smet::W_size, P, C_w, initial_x);
     try {
       auto [y_sol, x_sol] = smptsp_impr.solve();
