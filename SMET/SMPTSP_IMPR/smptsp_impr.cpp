@@ -116,8 +116,8 @@ pair<vector<int>, vector<vector<int>>> SMPTSP_IMPR::solve() {
     cplex.exportModel("smptsp.lp");
 
     // Define time and memory restrictions
-    // 100 seconds of execution time
-    cplex.setParam(IloCplex::Param::TimeLimit, 100);
+    // 600 seconds of execution time
+    cplex.setParam(IloCplex::Param::TimeLimit, 600);
     // 4GB of tree memory
     cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 4096);
 
