@@ -16,7 +16,7 @@ class Improvement {
 
   public:
     Improvement(double f_);
-    int evaluate(vector<int> &y);
+    int evaluate(vector<vector<int>> &x, vector<int> &y);
     void improve(int lower_bound, vector<vector<int>> initial_x, vector<int> initial_y); //[y_w, x_jw]
 };
 

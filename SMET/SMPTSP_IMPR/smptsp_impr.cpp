@@ -137,13 +137,13 @@ pair<vector<int>, vector<vector<int>>> SMPTSP_IMPR::solve() {
 
     cplex.getValues(vals_y, var_y);
     for(int w = 0; w < W_size; w++) {
-      y_vector[w] = (int) vals_y[w];
+      y_vector[w] = (int) round(vals_y[w]);
     }
 
     for(int j = 0; j < J_size; j++) {
       cplex.getValues(vals_x, var_x[j]);
       for(int w = 0; w < vals_x.getSize(); w++) {
-        x_vector[j].push_back((int) vals_x[w]);
+        x_vector[j].push_back((int) round(vals_x[w]));
       }
     }
 

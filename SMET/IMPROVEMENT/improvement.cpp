@@ -14,15 +14,18 @@ Improvement::Improvement(double f_) : f(f_) {
 }
 
 
-int Improvement::evaluate(vector<int> &y) {
+int Improvement::evaluate(vector<vector<int>> &x, vector<int> &y) {
+  for(int i = 0; i < x.size(); i++) {
+    if(accumulate(x[i].begin(), x[i].end(), 0) == 0) return 1e9+7;
+  }
+
   return accumulate(y.begin(), y.end(), 0);
 }
 
 
-// pair<vector<int>, vector<vector<int>>> Constructive::construct() {
 void Improvement::improve(int lower_bound, vector<vector<int>> initial_x, vector<int> initial_y) {
   int k = (int) (f * sqrt(smet::J_size));
-  int F_x_line = evaluate(initial_y);
+  int F_x_line = evaluate(initial_x, initial_y);
 
   while(F_x_line != lower_bound) {
     cout << "Cur obj value: " << F_x_line << endl;
@@ -30,7 +33,7 @@ void Improvement::improve(int lower_bound, vector<vector<int>> initial_x, vector
     try {
       auto [y_sol, x_sol] = smptsp_impr.solve();
 
-      int F_x = evaluate(y_sol);
+      int F_x = evaluate(x_sol, y_sol);
       if(F_x < F_x_line) {
         F_x_line = F_x;
         initial_x = x_sol;
@@ -44,11 +47,8 @@ void Improvement::improve(int lower_bound, vector<vector<int>> initial_x, vector
     }
   }
 
-
-
-
-  cout << "Solucao final:" << endl;
-  cout << "Valor objetivo: " << F_x_line << endl;
+  // cout << "Solucao final:" << endl;
+  // cout << "Valor objetivo: " << F_x_line << endl;
   // cout << "Y:" << endl;
   // for(int w = 0; w < smet::W_size; w++) {
   //   cout << "W=" << w << ": " << initial_y[w] << endl;
